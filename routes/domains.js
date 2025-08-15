@@ -116,7 +116,7 @@ router.post('/', async function(req, res, next) {
     const resend = new Resend(apiKey);
 
     // Create domain using Resend API
-    const result = await resend.domains.add({
+    const result = await resend.domains.create({
       name: name
     });
 
@@ -168,7 +168,14 @@ router.post('/', async function(req, res, next) {
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/DomainVerificationRequest'
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *                 description: The unique identifier of the domain to verify
+ *                 example: "d91cd9bd-1176-453e-8fc1-35364d380206"
+ *             required:
+ *               - id
  *     responses:
  *       200:
  *         description: Domain verification initiated successfully
@@ -230,9 +237,9 @@ router.post('/verify', async function(req, res, next) {
     }
 
     // Get domain from request body
-    const { domain } = req.body;
+    const { id } = req.body;
     
-    if (!domain) {
+    if (!id) {
       return res.status(400).json({
         success: false,
         error: 'Domain is required in request body'
@@ -243,9 +250,7 @@ router.post('/verify', async function(req, res, next) {
     const resend = new Resend(apiKey);
 
     // Verify domain using Resend API
-    const result = await resend.domains.verify({
-      id: domain
-    });
+    const result = await resend.domains.verify(id);
 
     // Return success response
     res.json({
@@ -283,7 +288,7 @@ router.post('/verify', async function(req, res, next) {
 
 /**
  * @swagger
- * /domains/status/{domainId}:
+ * /domains/status/{id}:
  *   get:
  *     summary: Get domain verification status
  *     description: Retrieves the current verification status of a domain from Resend
@@ -292,12 +297,12 @@ router.post('/verify', async function(req, res, next) {
  *       - ApiKeyAuth: []
  *     parameters:
  *       - in: path
- *         name: domainId
+ *         name: id
  *         required: true
  *         schema:
  *           type: string
  *         description: The unique identifier of the domain
- *         example: "your-domain-id"
+ *         example: "d91cd9bd-1176-453e-8fc1-35364d380206"
  *     responses:
  *       200:
  *         description: Domain status retrieved successfully
@@ -372,7 +377,7 @@ router.post('/verify', async function(req, res, next) {
  *               success: false
  *               error: "Internal server error during domain status check"
  */
-router.get('/status/:domainId', async function(req, res, next) {
+router.get('/status/:id', async function(req, res, next) {
   try {
     // Get API key from header
     const apiKey = req.headers['resend_api_key'];
@@ -385,13 +390,13 @@ router.get('/status/:domainId', async function(req, res, next) {
     }
 
     // Get domain ID from URL parameters
-    const { domainId } = req.params;
+    const { id } = req.params;
 
     // Initialize Resend with API key
     const resend = new Resend(apiKey);
 
     // Get domain status using Resend API
-    const result = await resend.domains.get(domainId);
+    const result = await resend.domains.get(id);
 
     // Return success response
     res.json({
@@ -429,7 +434,7 @@ router.get('/status/:domainId', async function(req, res, next) {
 
 /**
  * @swagger
- * /domains/{domainId}:
+ * /domains/{id}:
  *   delete:
  *     summary: Delete a domain
  *     description: Remove an existing domain from Resend
@@ -438,7 +443,7 @@ router.get('/status/:domainId', async function(req, res, next) {
  *       - ApiKeyAuth: []
  *     parameters:
  *       - in: path
- *         name: domainId
+ *         name: id
  *         required: true
  *         schema:
  *           type: string
@@ -495,7 +500,7 @@ router.get('/status/:domainId', async function(req, res, next) {
  *               success: false
  *               error: "Internal server error during domain deletion"
  */
-router.delete('/:domainId', async function(req, res, next) {
+router.delete('/:id', async function(req, res, next) {
   try {
     // Get API key from header
     const apiKey = req.headers['resend_api_key'];
@@ -508,13 +513,13 @@ router.delete('/:domainId', async function(req, res, next) {
     }
 
     // Get domain ID from URL parameters
-    const { domainId } = req.params;
+    const { id } = req.params;
 
     // Initialize Resend with API key
     const resend = new Resend(apiKey);
 
     // Delete domain using Resend API
-    const result = await resend.domains.remove(domainId);
+    const result = await resend.domains.remove(id);
 
     // Return success response
     res.json({
