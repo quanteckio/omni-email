@@ -37,9 +37,14 @@ const options = {
     ],
     servers: [
       {
+        url: 'https://p01--omni-email--pfcq4fn59ptb.code.run',
+        description: 'Production server'
+      },
+      {
         url: 'http://localhost:3000',
         description: 'Development server'
-      }
+      },
+
     ],
     components: {
       securitySchemes: {
@@ -258,7 +263,7 @@ const options = {
                   html: '<h1>Welcome User 1!</h1>'
                 },
                 {
-                  from: 'noreply@yourdomain.com', 
+                  from: 'noreply@yourdomain.com',
                   to: ['recipient2@example.com'],
                   subject: 'Welcome User 2!',
                   html: '<h1>Welcome User 2!</h1>'
