@@ -3,7 +3,15 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "docker:build": "docker build -t omni-email:latest .",
+    "docker:build:prod": "docker build --target production -t omni-email:prod .",
+    "docker:run": "docker run -p 3000:3000 omni-email:latest",
+    "docker:run:prod": "docker run -p 3000:3000 omni-email:prod",
+    "docker:compose:up": "docker-compose up -d",
+    "docker:compose:down": "docker-compose down",
+    "docker:compose:logs": "docker-compose logs -f",
+    "docker:prune": "docker system prune -f"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
