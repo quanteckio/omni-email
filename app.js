@@ -1,3 +1,4 @@
+require('dotenv').config();
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
@@ -10,6 +11,7 @@ var emailsRouter = require('./routes/emails');
 var contactsRouter = require('./routes/contacts');
 var audiencesRouter = require('./routes/audiences');
 var broadcastsRouter = require('./routes/broadcasts');
+var mailboxRouter = require('./routes/mailboxRouter');
 var { specs, swaggerUi } = require('./swagger');
 
 var app = express();
@@ -32,13 +34,14 @@ app.use((req, res, next) => {
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
+app.use(express.json({ limit: "5mb" }));
 
 app.use('/domains', domainsRouter);
 app.use('/emails', emailsRouter);
 app.use('/contacts', contactsRouter);
 app.use('/audiences', audiencesRouter);
 app.use('/broadcasts', broadcastsRouter);
+app.use('/mailbox', mailboxRouter);
 
 // Swagger documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
@@ -47,6 +50,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 app.use(function(req, res, next) {
   next(createError(404));
 });
+
 
 // error handler
 app.use(function(err, req, res, next) {

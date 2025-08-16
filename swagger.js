@@ -33,6 +33,10 @@ const options = {
       {
         name: 'Broadcasts',
         description: 'Broadcast email management endpoints using Resend API'
+      },
+      {
+        name: 'Mailbox',
+        description: 'Direct IMAP/SMTP mailbox management and real-time email monitoring'
       }
     ],
     servers: [
@@ -573,6 +577,485 @@ const options = {
               }
             }
           }
+        },
+        MailboxServerSettings: {
+          type: 'object',
+          required: ['server', 'port', 'username', 'password', 'connection'],
+          properties: {
+            server: {
+              type: 'string',
+              description: 'Mail server hostname',
+              example: 'imap.gmail.com'
+            },
+            port: {
+              type: 'integer',
+              minimum: 1,
+              maximum: 65535,
+              description: 'Mail server port',
+              example: 993
+            },
+            username: {
+              type: 'string',
+              description: 'Login username',
+              example: 'user@gmail.com'
+            },
+            password: {
+              type: 'string',
+              description: 'Login password',
+              example: 'app-specific-password'
+            },
+            connection: {
+              type: 'string',
+              enum: ['SSL/TLS', 'STARTTLS'],
+              description: 'Connection security type',
+              example: 'SSL/TLS'
+            }
+          }
+        },
+        CreateMailboxAccountRequest: {
+          type: 'object',
+          required: ['userId', 'primaryEmail', 'imap', 'smtp'],
+          properties: {
+            userId: {
+              type: 'string',
+              description: 'User identifier',
+              example: 'user123'
+            },
+            label: {
+              type: 'string',
+              description: 'Optional label for the account',
+              example: 'Personal Gmail'
+            },
+            primaryEmail: {
+              type: 'string',
+              format: 'email',
+              description: 'Primary email address',
+              example: 'user@gmail.com'
+            },
+            imap: {
+              $ref: '#/components/schemas/MailboxServerSettings'
+            },
+            smtp: {
+              $ref: '#/components/schemas/MailboxServerSettings'
+            },
+            testConnection: {
+              type: 'boolean',
+              description: 'Test connection before saving',
+              default: false,
+              example: true
+            }
+          }
+        },
+        UpdateMailboxAccountRequest: {
+          type: 'object',
+          required: ['primaryEmail', 'imap', 'smtp'],
+          properties: {
+            label: {
+              type: 'string',
+              description: 'Optional label for the account',
+              example: 'Work Gmail'
+            },
+            primaryEmail: {
+              type: 'string',
+              format: 'email',
+              description: 'Primary email address',
+              example: 'user@gmail.com'
+            },
+            imap: {
+              $ref: '#/components/schemas/MailboxServerSettings'
+            },
+            smtp: {
+              $ref: '#/components/schemas/MailboxServerSettings'
+            }
+          }
+        },
+        MailboxAttachment: {
+          type: 'object',
+          required: ['filename', 'contentBase64'],
+          properties: {
+            filename: {
+              type: 'string',
+              description: 'File name',
+              example: 'document.pdf'
+            },
+            contentBase64: {
+              type: 'string',
+              description: 'Base64 encoded file content',
+              example: 'JVBERi0xLjQKJdP...'
+            },
+            contentType: {
+              type: 'string',
+              description: 'MIME type',
+              example: 'application/pdf'
+            }
+          }
+        },
+        MailboxSendRequest: {
+          type: 'object',
+          required: ['to'],
+          properties: {
+            to: {
+              type: 'array',
+              items: {
+                type: 'string',
+                format: 'email'
+              },
+              minItems: 1,
+              description: 'Recipient email addresses',
+              example: ['recipient@example.com']
+            },
+            cc: {
+              type: 'array',
+              items: {
+                type: 'string',
+                format: 'email'
+              },
+              description: 'CC email addresses',
+              example: ['cc@example.com']
+            },
+            bcc: {
+              type: 'array',
+              items: {
+                type: 'string',
+                format: 'email'
+              },
+              description: 'BCC email addresses',
+              example: ['bcc@example.com']
+            },
+            subject: {
+              type: 'string',
+              description: 'Email subject',
+              default: '',
+              example: 'Important Update'
+            },
+            text: {
+              type: 'string',
+              description: 'Plain text content',
+              example: 'This is the email body in plain text.'
+            },
+            html: {
+              type: 'string',
+              description: 'HTML content',
+              example: '<h1>Important Update</h1><p>This is the email body in HTML.</p>'
+            },
+            attachments: {
+              type: 'array',
+              items: {
+                $ref: '#/components/schemas/MailboxAttachment'
+              },
+              description: 'Email attachments'
+            }
+          }
+        },
+        MailboxAccount: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              description: 'Account ID',
+              example: '01ARZ3NDEKTSV4RRFFQ69G5FAV'
+            },
+            userId: {
+              type: 'string',
+              description: 'User ID',
+              example: 'user123'
+            },
+            label: {
+              type: 'string',
+              nullable: true,
+              description: 'Account label',
+              example: 'Personal Gmail'
+            },
+            primaryEmailMasked: {
+              type: 'string',
+              description: 'Masked primary email',
+              example: 'u***r@gmail.com'
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Creation timestamp',
+              example: '2024-01-01T12:00:00.000Z'
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Last update timestamp',
+              example: '2024-01-01T12:00:00.000Z'
+            }
+          }
+        },
+        MailboxAccountDetail: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              description: 'Account ID',
+              example: '01ARZ3NDEKTSV4RRFFQ69G5FAV'
+            },
+            userId: {
+              type: 'string',
+              description: 'User ID',
+              example: 'user123'
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Creation timestamp',
+              example: '2024-01-01T12:00:00.000Z'
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Last update timestamp',
+              example: '2024-01-01T12:00:00.000Z'
+            },
+            secret: {
+              type: 'object',
+              properties: {
+                label: {
+                  type: 'string',
+                  nullable: true,
+                  description: 'Account label',
+                  example: 'Personal Gmail'
+                },
+                primaryEmail: {
+                  type: 'string',
+                  format: 'email',
+                  description: 'Primary email address',
+                  example: 'user@gmail.com'
+                },
+                imap: {
+                  type: 'object',
+                  properties: {
+                    server: {
+                      type: 'string',
+                      example: 'imap.gmail.com'
+                    },
+                    port: {
+                      type: 'integer',
+                      example: 993
+                    },
+                    username: {
+                      type: 'string',
+                      example: 'user@gmail.com'
+                    },
+                    password: {
+                      type: 'string',
+                      description: 'May be undefined if includePasswords=false'
+                    },
+                    hasPassword: {
+                      type: 'boolean',
+                      description: 'Indicates if password exists (when password is redacted)'
+                    },
+                    connection: {
+                      type: 'string',
+                      enum: ['SSL/TLS', 'STARTTLS'],
+                      example: 'SSL/TLS'
+                    }
+                  }
+                },
+                smtp: {
+                  type: 'object',
+                  properties: {
+                    server: {
+                      type: 'string',
+                      example: 'smtp.gmail.com'
+                    },
+                    port: {
+                      type: 'integer',
+                      example: 587
+                    },
+                    username: {
+                      type: 'string',
+                      example: 'user@gmail.com'
+                    },
+                    password: {
+                      type: 'string',
+                      description: 'May be undefined if includePasswords=false'
+                    },
+                    hasPassword: {
+                      type: 'boolean',
+                      description: 'Indicates if password exists (when password is redacted)'
+                    },
+                    connection: {
+                      type: 'string',
+                      enum: ['SSL/TLS', 'STARTTLS'],
+                      example: 'STARTTLS'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        MailboxMessage: {
+          type: 'object',
+          properties: {
+            uid: {
+              type: 'integer',
+              description: 'Message UID',
+              example: 12345
+            },
+            subject: {
+              type: 'string',
+              description: 'Email subject',
+              example: 'Important Update'
+            },
+            from: {
+              type: 'array',
+              items: {
+                type: 'string',
+                format: 'email'
+              },
+              description: 'Sender email addresses',
+              example: ['sender@example.com']
+            },
+            to: {
+              type: 'array',
+              items: {
+                type: 'string',
+                format: 'email'
+              },
+              description: 'Recipient email addresses',
+              example: ['recipient@example.com']
+            },
+            date: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Message date',
+              example: '2024-01-01T12:00:00.000Z'
+            },
+            flags: {
+              type: 'array',
+              items: {
+                type: 'string'
+              },
+              description: 'Message flags',
+              example: ['\\Seen', '\\Recent']
+            }
+          }
+        },
+        MailboxMessageDetail: {
+          allOf: [
+            {
+              $ref: '#/components/schemas/MailboxMessage'
+            },
+            {
+              type: 'object',
+              properties: {
+                rfc822: {
+                  type: 'string',
+                  nullable: true,
+                  description: 'Raw RFC822 message source',
+                  example: 'Return-Path: <sender@example.com>\\nReceived: ...'
+                }
+              }
+            }
+          ]
+        },
+        MailboxSendResponse: {
+          type: 'object',
+          properties: {
+            messageId: {
+              type: 'string',
+              description: 'Generated message ID',
+              example: '<1234567890@smtp.gmail.com>'
+            },
+            accepted: {
+              type: 'array',
+              items: {
+                type: 'string',
+                format: 'email'
+              },
+              description: 'Accepted recipients',
+              example: ['recipient@example.com']
+            },
+            rejected: {
+              type: 'array',
+              items: {
+                type: 'string',
+                format: 'email'
+              },
+              description: 'Rejected recipients',
+              example: []
+            }
+          }
+        },
+        MailboxSSEEvent: {
+          type: 'object',
+          discriminator: {
+            propertyName: 'type'
+          },
+          required: ['type'],
+          properties: {
+            type: {
+              type: 'string',
+              enum: ['WatcherReady', 'EmailReceived', 'Error', 'SSEReady'],
+              description: 'Event type'
+            }
+          }
+        },
+        MailboxEmailReceivedEvent: {
+          allOf: [
+            {
+              $ref: '#/components/schemas/MailboxSSEEvent'
+            },
+            {
+              type: 'object',
+              properties: {
+                accountId: {
+                  type: 'string',
+                  description: 'Account ID',
+                  example: '01ARZ3NDEKTSV4RRFFQ69G5FAV'
+                },
+                uid: {
+                  type: 'integer',
+                  description: 'Message UID',
+                  example: 12345
+                },
+                subject: {
+                  type: 'string',
+                  nullable: true,
+                  description: 'Email subject',
+                  example: 'New Message'
+                },
+                from: {
+                  type: 'array',
+                  items: {
+                    type: 'string',
+                    format: 'email'
+                  },
+                  description: 'Sender addresses',
+                  example: ['sender@example.com']
+                },
+                to: {
+                  type: 'array',
+                  items: {
+                    type: 'string',
+                    format: 'email'
+                  },
+                  description: 'Recipient addresses',
+                  example: ['recipient@example.com']
+                },
+                date: {
+                  type: 'string',
+                  format: 'date-time',
+                  nullable: true,
+                  description: 'Message date',
+                  example: '2024-01-01T12:00:00.000Z'
+                },
+                flags: {
+                  type: 'array',
+                  items: {
+                    type: 'string'
+                  },
+                  description: 'Message flags',
+                  example: ['\\Recent']
+                }
+              }
+            }
+          ]
         }
       }
     },
